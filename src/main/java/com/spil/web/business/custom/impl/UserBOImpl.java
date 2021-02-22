@@ -2,65 +2,49 @@ package com.spil.web.business.custom.impl;
 
 import com.spil.web.business.custom.UserBO;
 import com.spil.web.business.util.EntityDTOMapper;
-import com.spil.web.dao.DAOFactory;
-import com.spil.web.dao.DAOTypes;
 import com.spil.web.dao.custom.UserDAO;
 import com.spil.web.dto.UserDTO;
-import org.hibernate.Session;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+@Service
+@Transactional
 public class UserBOImpl implements UserBO {
 
-    private final UserDAO userDAO;
-    private final EntityDTOMapper mapper = EntityDTOMapper.instance;
-    private Session session;
+    @Autowired
+    private UserDAO userDAO;
 
-    public UserBOImpl(){
-        userDAO = DAOFactory.getInstance().getDAO(DAOTypes.USER);
-    }
+    @Autowired
+    private EntityDTOMapper mapper;
 
-    @Override
-    public void setSession(Session session) throws Exception {
-        this.session = session;
-        userDAO.setSession(session);
-    }
 
     @Override
     public void saveUser(UserDTO dto) throws Exception {
-        session.beginTransaction();
         userDAO.save(mapper.getUser(dto));
-        session.getTransaction().commit();
     }
 
     @Override
     public void updateUser(UserDTO dto) throws Exception {
-        session.beginTransaction();
         userDAO.update(mapper.getUser(dto));
-        session.getTransaction().commit();
     }
 
     @Override
     public void deleteUser(String userId) throws Exception {
-        session.beginTransaction();
         userDAO.delete(userId);
-        session.getTransaction().commit();
     }
 
+    @Transactional(readOnly = true)
     @Override
     public List<UserDTO> findAllUsers() throws Exception {
-        session.beginTransaction();
-        List<UserDTO> collect = mapper.getUserDTOs(userDAO.getAll());
-        session.getTransaction().commit();
-        return collect;
+        return mapper.getUserDTOs(userDAO.getAll());
     }
 
     @Override
-    public UserDTO findUser(String userId) throws Exception {
-        session.beginTransaction();
-        UserDTO userDTO = mapper.getUserDTO(userDAO.get(userId));
-        session.getTransaction().commit();
-        return userDTO;
+    public UserDTO findUser(String id) throws  Exception{
+        return mapper.getUserDTO(userDAO.get(id));
     }
 
 

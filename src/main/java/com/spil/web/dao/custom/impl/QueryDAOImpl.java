@@ -3,13 +3,16 @@ package com.spil.web.dao.custom.impl;
 
 import com.spil.web.dao.custom.QueryDAO;
 import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 public class QueryDAOImpl implements QueryDAO {
 
-    private Session session;
+    @Autowired
+    private SessionFactory sessionFactory;
 
-    @Override
-    public void setSession(Session session) throws Exception {
-        this.session = session;
+    public Session getSession(){
+        return sessionFactory.getCurrentSession();
     }
+
 }
