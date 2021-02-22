@@ -41,7 +41,9 @@ public class UserServlet extends HttpServlet {
         try (Session session = sf.openSession()) {
 
             if (req.getPathInfo() == null || req.getPathInfo().replace("/", "").trim().isEmpty()) {
-                throw new HttpResponseException(400, "Invalid customer id", null);
+                System.out.println(req.getPathInfo());
+
+                throw new HttpResponseException(400, "Invalid user id", null);
             }
 
             String id = req.getPathInfo().replace("/", "");
@@ -77,6 +79,7 @@ public class UserServlet extends HttpServlet {
 
             UserBO userBO = BOFactory.getInstance().getBO(BOTypes.USER);
             userBO.setSession(session);
+            dto.setId(id);
             userBO.updateUser(dto);
             resp.setStatus(HttpServletResponse.SC_NO_CONTENT);
 
@@ -94,9 +97,8 @@ public class UserServlet extends HttpServlet {
         final SessionFactory sf = (SessionFactory) getServletContext().getAttribute("sf");
 
         try (Session session = sf.openSession()) {
-
+            resp.setContentType("application/json");
             if (req.getPathInfo() == null || req.getPathInfo().replace("/", "").trim().isEmpty()) {
-                resp.setContentType("application/json");
                 UserBO userBO = BOFactory.getInstance().getBO(BOTypes.USER);
                 userBO.setSession(session);
                 resp.getWriter().println(jsonb.toJson(userBO.findAllUsers()));
@@ -106,8 +108,13 @@ public class UserServlet extends HttpServlet {
 
                 UserBO userBO = BOFactory.getInstance().getBO(BOTypes.USER);
                 userBO.setSession(session);
-                userBO.findUser(id);
-                resp.setStatus(HttpServletResponse.SC_NO_CONTENT);
+                UserDTO user = userBO.findUser(id);
+                if(user==null){
+                    resp.sendError(HttpServletResponse.SC_NOT_FOUND);
+                }
+                else{
+                    resp.getWriter().println(jsonb.toJson(user));
+                }
             }
 
 
@@ -120,7 +127,6 @@ public class UserServlet extends HttpServlet {
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         Jsonb jsonb = JsonbBuilder.create();
         final SessionFactory sf = (SessionFactory) getServletContext().getAttribute("sf");
-
         try (Session session = sf.openSession()) {
             UserDTO dto = jsonb.fromJson(req.getReader(), UserDTO.class);
 
